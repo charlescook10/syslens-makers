@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <sys/socket.h> // Core socket functions
 #include <arpa/inet.h>  // Functions for handling IP addresses
+#include <netdb.h>
+
 #include "protocol.h"
 
 #ifdef __APPLE__
@@ -220,16 +222,22 @@ int main(int argc, char* argv[]) {
     SocketManager s; // Socket is created here
 
     // 1. Define the destination (Localhost: 127.0.0.1, Port: 8080)
-    sockaddr_in addr = {};           
-    addr.sin_family = AF_INET;       
-    addr.sin_port = htons(std::stoi(argv[2]));     // htons: 'host to network short' (Big Endian)
-    inet_pton(AF_INET, argv[1], &addr.sin_addr);
+    struct addrinfo hints{}, *res;
+    hints.ai_family = AF_INET;        // IPv4
+    hints.ai_socktype = SOCK_STREAM;  // TCP
 
     // 2. Connect to the server
-    if (connect(s.fd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-        std::cout << "Connection Failed. Did you start the server first?" << std::endl;
+    if (getaddrinfo(argv[1], argv[2], &hints, &res) != 0) {
+        perror("getaddrinfo failed");
         return 1;
     }
+
+    if (connect(s.fd, res->ai_addr, res->ai_addrlen) < 0) {
+        perror("connect failed");
+        return 1;
+    }
+
+    freeaddrinfo(res);
 
     // 3. Send StatPacket to server
 

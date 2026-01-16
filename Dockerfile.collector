@@ -1,11 +1,13 @@
-# Stage 1: Compile inside a Linux environment
+# Stage 1: build
 FROM ubuntu:22.04 AS builder
 RUN apt-get update && apt-get install -y build-essential
-COPY . /app
 WORKDIR /app
-RUN make
+COPY . /app
+RUN make collector
 
-# Stage 2: Create the final lean image
+# Stage 2: final image
 FROM ubuntu:22.04
+WORKDIR /app
 COPY --from=builder /app/collector /usr/local/bin/collector
+EXPOSE 8080
 CMD ["/usr/local/bin/collector"]

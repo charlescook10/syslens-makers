@@ -2,24 +2,32 @@
 CXX = g++
 CXXFLAGS = -std=c++17 -pthread -Wall
 
-# Target binary
-TARGET = collector
+# Targets
+TARGETS = collector agent
 
 # Source files
-SRCS = agent.cpp protocol.cpp
-OBJS = $(SRCS:.cpp=.o)
+SRCS_COLLECTOR = collector.cpp protocol.cpp
+SRCS_AGENT = agent.cpp protocol.cpp
 
-# Default target
-all: $(TARGET)
+# Object files
+OBJS_COLLECTOR = $(SRCS_COLLECTOR:.cpp=.o)
+OBJS_AGENT = $(SRCS_AGENT:.cpp=.o)
 
-# How to build the binary from object files
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+# Default target builds both
+all: $(TARGETS)
 
-# How to build object files
+# Build collector
+collector: $(OBJS_COLLECTOR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS_COLLECTOR)
+
+# Build agent
+agent: $(OBJS_AGENT)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS_AGENT)
+
+# Generic rule for object files
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# Clean rule
+# Clean
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f $(OBJS_COLLECTOR) $(OBJS_AGENT) $(TARGETS)
